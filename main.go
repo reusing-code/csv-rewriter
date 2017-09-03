@@ -12,6 +12,10 @@ import (
 	"math"
 )
 
+type payeeSubstitution interface {
+	substitute(payee string, memo string) (string, string)
+}
+
 /**
  * Input: "Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";
  * Output: Date;Payee;Category;Memo;Outflow;Inflow
@@ -22,8 +26,14 @@ func main() {
 	if len(os.Args) < 3 {
 		panic("Not enough command line arguments")
 	}
+
 	inputFileName := os.Args[1]
 	outputFileName := os.Args[2]
+
+	rewriteCSV(inputFileName, outputFileName, personalPayees{})
+}
+
+func rewriteCSV(inputFileName string, outputFileName string, substitution payeeSubstitution) {
 
 	inputFile, err := os.Open(inputFileName)
 	if err != nil {
@@ -87,56 +97,15 @@ func main() {
 				outputTokens[3] = removeQuotes(inputTokens[3])
 			}
 		}
-
-		doPayeeFiltering(outputTokens)
+		outputTokens[1], outputTokens[3] = substitution.substitute(outputTokens[1], outputTokens[3])
 		filterRef(outputTokens)
 
 		fmt.Fprintln(writer, strings.Join(outputTokens, ","))
 	}
-
-}
-
-var markets = []struct {
-	in  string
-	out string
-}{
-	{"E-CENTER", "Edeka"},
-	{"EDEKA", "Edeka"},
-	{"ROSSMANN", "Rossmann"},
-	{"ALDI", "Aldi"},
-	{"ERGO", "Ergo Direkt"},
-	{"COSMOS", "Transfer: Cosmos Leben"},
-	{"1u1", "1und1"},
-	{"VOLKSWAGEN", "Volkswagen"},
-	{"COM-IN", "COM-IN"},
-	{"Anna Roiser", "Anna Roiser"},
-	{"Norma", "Norma"},
-	{"McFit", "McFit"},
-	{"Stadtwerke Ingolstadt", "Stadtwerke Ingolstadt"},
-	{"e.solutions", "Einkommen"},
-	{"Willner", "Willner"},
-	{"REWE", "REWE"},
-	{"C+A", "C+A"},
-	{"Schuh Muecke", "Schuh Mücke"},
-	{"E-TANKEN", "Tankstelle"},
-	{"Bauhaus", "Bauhaus"},
-	{"Visa-Monatsabrechnung", "Transfer: Visa"},
-	{"BARCLAYCARD", "Barcleycard"},
-	{"AMAZON.DE", "Amazon"},
-	{"Amazon DE Marketplace", "Amazon Marketplace"},
 }
 
 func removeQuotes(s string) string {
 	return strings.Replace(s, "\"", "", -1)
-}
-
-func doPayeeFiltering(tokens []string) {
-	for _, market := range markets {
-		if CaseInsensitiveContains(tokens[1], market.in) {
-			tokens[1] = market.out
-			tokens[3] = ""
-		}
-	}
 }
 
 func filterRef(tokens []string) {
