@@ -7,10 +7,14 @@ import (
 	"strconv"
 	"strings"
 
+	"flag"
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
 	"math"
+	"time"
 )
+
+const dateFormat string = "02.01.2006"
 
 type payeeSubstitution interface {
 	substitute(payee string, memo string) (string, string)
@@ -23,17 +27,29 @@ type payeeSubstitution interface {
 
 func main() {
 
-	if len(os.Args) < 3 {
-		panic("Not enough command line arguments")
+	inputFileName := flag.String("in", "", "input file (mandatory)")
+	outputFileName := flag.String("out", "", "output file (mandatory)")
+	fromDate := flag.String("fromDate", "01.01.1900", "only parse from this day and after (Format: DD.MM.YYY)")
+
+	flag.Parse()
+
+	if *inputFileName == "" {
+		panic("No input file declared. Check usage with -h")
 	}
 
-	inputFileName := os.Args[1]
-	outputFileName := os.Args[2]
+	if *outputFileName == "" {
+		panic("No output file declared. Check usage with -h")
+	}
 
-	rewriteCSV(inputFileName, outputFileName, personalPayees{})
+	date, err := time.Parse(dateFormat, *fromDate)
+	if err != nil {
+		panic(err)
+	}
+
+	rewriteCSV(*inputFileName, *outputFileName, date, personalPayees{})
 }
 
-func rewriteCSV(inputFileName string, outputFileName string, substitution payeeSubstitution) {
+func rewriteCSV(inputFileName string, outputFileName string, fromDate time.Time, substitution payeeSubstitution) {
 
 	inputFile, err := os.Open(inputFileName)
 	if err != nil {
@@ -69,6 +85,10 @@ func rewriteCSV(inputFileName string, outputFileName string, substitution payeeS
 			outputTokens = strings.Split("Date;Payee;Category;Memo;Outflow;Inflow", ";")
 		} else {
 			outputTokens[0] = removeQuotes(inputTokens[0])
+			date, _ := time.Parse(dateFormat, outputTokens[0])
+			if date.Before(fromDate) {
+				continue
+			}
 			rawValue := strings.Replace(removeQuotes(inputTokens[4]), ".", "", -1)
 			value, _ := strconv.ParseFloat(strings.Replace(rawValue, ",", ".", 1), 64)
 			valueStr := strconv.FormatFloat(math.Abs(value), 'f', 2, 64)
