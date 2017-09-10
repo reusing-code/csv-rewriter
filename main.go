@@ -69,7 +69,7 @@ func rewriteCSV(inputFileName string, outputFileName string, fromDate time.Time,
 	hasReference := false
 	for scanner.Scan() {
 		inputTokens := strings.Split(scanner.Text(), ";")
-		fmt.Println(inputTokens)
+
 		if len(inputTokens) < 5 {
 			continue
 		}
