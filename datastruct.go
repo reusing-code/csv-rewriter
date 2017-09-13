@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io"
+	"bufio"
 	"time"
 )
 
@@ -18,6 +18,6 @@ type InputProcessor interface {
 }
 
 type OutputProcessor interface {
-	WriteHeader(w *io.Writer)
-	Process(w *io.Writer, t Transaction)
+	WriteHeader(w *bufio.Writer)
+	Process(w *bufio.Writer, t *Transaction)
 }

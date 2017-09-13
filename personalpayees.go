@@ -1,16 +1,17 @@
 package main
 
+import "strings"
+
 type personalPayees struct {
 }
 
-func (personalPayees) substitute(payee string, memo string) (string, string) {
+func (personalPayees) substitute(t *Transaction) {
 	for _, replacement := range replacements {
-		if CaseInsensitiveContains(payee, replacement.in) {
-			payee = replacement.out
-			memo = ""
+		if CaseInsensitiveContains(t.Payee, replacement.in) {
+			t.Payee = replacement.out
+			t.Comment = ""
 		}
 	}
-	return payee, memo
 }
 
 var replacements = []struct {
@@ -41,4 +42,9 @@ var replacements = []struct {
 	{"BARCLAYCARD", "Barcleycard"},
 	{"AMAZON.DE", "Amazon"},
 	{"Amazon DE Marketplace", "Amazon Marketplace"},
+}
+
+func CaseInsensitiveContains(s, substr string) bool {
+	s, substr = strings.ToUpper(s), strings.ToUpper(substr)
+	return strings.Contains(s, substr)
 }

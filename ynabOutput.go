@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io"
 	"math"
 	"strconv"
 	"strings"
@@ -13,11 +13,11 @@ const YNABDateFormat string = "01/02/2006"
 type YNABOutput struct {
 }
 
-func (YNABOutput) WriteHeader(w *io.Writer) {
+func (YNABOutput) WriteHeader(w *bufio.Writer) {
 	fmt.Fprintln(w, "Date,Payee,Category,Memo,Outflow,Inflow")
 }
 
-func (YNABOutput) Process(w *io.Writer, t Transaction) {
+func (YNABOutput) Process(w *bufio.Writer, t *Transaction) {
 	date := t.Date.Format(YNABDateFormat)
 	valueStr := strconv.FormatFloat(math.Abs(t.Value), 'f', 2, 64)
 	outflow := ""
