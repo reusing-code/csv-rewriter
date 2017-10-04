@@ -16,15 +16,15 @@ type ComdirectInput struct {
 
 type handler func(*Transaction) bool
 
-func NewComdirectInput(fromDate time.Time, sub payeeSubstitution) ComdirectInput {
+func NewComdirectInput(fromDate time.Time, sub payeeSubstitution) *ComdirectInput {
 	com := ComdirectInput{}
 	com.headerFound = false
 	com.fromDate = fromDate
 	com.sub = sub
-	return com
+	return &com
 }
 
-func (c ComdirectInput) processLine(line string) *Transaction {
+func (c *ComdirectInput) processLine(line string) *Transaction {
 	if !c.headerFound {
 		if strings.EqualFold(line, `"Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";`) ||
 			strings.EqualFold(line, `"Buchungstag";"Umsatztag";"Vorgang";"Referenz";"Buchungstext";"Umsatz in EUR";`) {
@@ -33,20 +33,20 @@ func (c ComdirectInput) processLine(line string) *Transaction {
 		return nil
 	}
 
-	handlers := []handler{handleLastschrif, handleWertpapiere, handleVisa, handleVisaMonthlyPayment}
+	handlers := []handler{handleLastschrift, handleWertpapiere, handleVisa, handleVisaMonthlyPayment}
 
-	tokens := strings.Split(line, ";")
+	tokens := splitLine(line, ',')
 	length := len(tokens)
 	if length < 5 {
 		return nil
 	}
-	buchungsTag, _ := time.Parse(comdirectDateFormat, removeQuotes(tokens[0]))
-	vorgang := removeQuotes(tokens[2])
-	buchungsText := removeQuotes(tokens[3])
-	umsatz := removeQuotes(tokens[4])
+	buchungsTag, _ := time.Parse(comdirectDateFormat, tokens[0])
+	vorgang := tokens[2]
+	buchungsText := tokens[3]
+	umsatz := tokens[4]
 	if length == 6 {
-		buchungsText = removeQuotes(tokens[4])
-		umsatz = removeQuotes(tokens[5])
+		buchungsText = tokens[4]
+		umsatz = tokens[5]
 	}
 	t := Transaction{}
 	t.Date = buchungsTag
@@ -71,12 +71,12 @@ func (c ComdirectInput) processLine(line string) *Transaction {
 }
 
 func parseValue(str string) float64 {
-	rawValue := strings.Replace(removeQuotes(str), ".", "", -1)
+	rawValue := strings.Replace(str, ".", "", -1)
 	value, _ := strconv.ParseFloat(strings.Replace(rawValue, ",", ".", 1), 64)
 	return value
 }
 
-func handleLastschrif(t *Transaction) bool {
+func handleLastschrift(t *Transaction) bool {
 	if strings.Contains(t.Payee, "Lastschrift") || strings.Contains(t.Payee, "Überweisung") {
 		s := strings.Split(t.Comment, " Buchungstext: ")
 		t.Comment = s[1]
@@ -119,6 +119,27 @@ func filterRef(t *Transaction) {
 	t.Comment = strings.Split(t.Comment, " End-to-End-Ref.:")[0]
 }
 
-func removeQuotes(s string) string {
-	return strings.Replace(s, "\"", "", -1)
+func splitLine(s string, separator rune) []string {
+	inQuotes := false
+	var result = make([]string, 0)
+	curStr := ""
+	for _, runeValue := range s {
+		if runeValue == '"' {
+			inQuotes = !inQuotes
+			continue
+		}
+		if inQuotes {
+			curStr += string(runeValue)
+			continue
+		}
+		if runeValue == separator {
+			result = append(result, curStr)
+			curStr = ""
+			continue
+		}
+		curStr += string(runeValue)
+
+	}
+	result = append(result, curStr)
+	return result
 }

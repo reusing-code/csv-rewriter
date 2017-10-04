@@ -7,6 +7,7 @@ import (
 	"flag"
 	"time"
 
+	"fmt"
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
 )
@@ -67,7 +68,9 @@ func rewriteCSV(inputFileName string, outputFileName string, fromDate time.Time,
 	var outProc OutputProcessor = YNABOutput{}
 	outProc.WriteHeader(writer)
 	for scanner.Scan() {
-		t := inProc.processLine(scanner.Text())
-		outProc.Process(writer, t)
+		if t := inProc.processLine(scanner.Text()); t != nil {
+			fmt.Println("a")
+			outProc.Process(writer, t)
+		}
 	}
 }
