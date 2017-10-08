@@ -6,11 +6,11 @@ import (
 )
 
 type Transaction struct {
-	Date     time.Time
-	Payee    string
-	Category string
-	Comment  string
-	Value    float64
+	Date      time.Time
+	Payee     string
+	Category  string
+	Comment   string
+	ValueCent int
 }
 
 type InputProcessor interface {

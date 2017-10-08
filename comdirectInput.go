@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -48,11 +49,18 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 		buchungsText = tokens[4]
 		umsatz = tokens[5]
 	}
+	var err error = nil
 	t := Transaction{}
 	t.Date = buchungsTag
-	t.Value = parseValue(umsatz)
+	t.ValueCent, err = parseValue(umsatz)
 	t.Comment = buchungsText
 	t.Category = vorgang
+
+	if err != nil {
+		fmt.Errorf("error in parsing value from line '%s'", line)
+		fmt.Println(err)
+		return nil
+	}
 
 	if t.Date.Before(c.fromDate) {
 		return nil
@@ -70,10 +78,11 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	return &t
 }
 
-func parseValue(str string) float64 {
+func parseValue(str string) (int, error) {
 	rawValue := strings.Replace(str, ".", "", -1)
-	value, _ := strconv.ParseFloat(strings.Replace(rawValue, ",", ".", 1), 64)
-	return value
+	rawValue = strings.Replace(rawValue, ",", "", -1)
+	value, err := strconv.ParseInt(rawValue, 10, 32)
+	return int(value), err
 }
 
 func handleLastschrift(t *Transaction) bool {

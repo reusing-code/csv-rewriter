@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -19,12 +18,13 @@ func (YNABOutput) WriteHeader(w *bufio.Writer) {
 
 func (YNABOutput) Process(w *bufio.Writer, t *Transaction) {
 	date := t.Date.Format(YNABDateFormat)
-	valueStr := strconv.FormatFloat(math.Abs(t.Value), 'f', 2, 64)
 	outflow := ""
 	inflow := ""
-	if t.Value < 0 {
+	if t.ValueCent < 0 {
+		valueStr := strconv.FormatInt(int64(-t.ValueCent), 10)
 		outflow = valueStr
 	} else {
+		valueStr := strconv.FormatInt(int64(t.ValueCent), 10)
 		inflow = valueStr
 	}
 	output := strings.Join([]string{date, t.Payee, t.Category, t.Comment, outflow, inflow}, ",")
