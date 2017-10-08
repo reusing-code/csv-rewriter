@@ -7,7 +7,6 @@ import (
 	"flag"
 	"time"
 
-	"fmt"
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
 )
