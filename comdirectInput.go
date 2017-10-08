@@ -71,6 +71,7 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 			break
 		}
 	}
+	t.Category = ""
 
 	c.sub.substitute(&t)
 	filterRef(&t)
