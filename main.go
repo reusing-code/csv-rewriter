@@ -65,11 +65,10 @@ func rewriteCSV(inputFileName string, outputFileName string, fromDate time.Time,
 	defer writer.Flush()
 
 	var inProc InputProcessor = NewComdirectInput(fromDate, substitution)
-	var outProc OutputProcessor = YNABOutput{}
+	var outProc OutputProcessor = &YNABOutput{}
 	outProc.WriteHeader(writer)
 	for scanner.Scan() {
 		if t := inProc.processLine(scanner.Text()); t != nil {
-			fmt.Println("a")
 			outProc.Process(writer, t)
 		}
 	}

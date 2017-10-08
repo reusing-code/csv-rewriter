@@ -36,7 +36,7 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 
 	handlers := []handler{handleLastschrift, handleWertpapiere, handleVisa, handleVisaMonthlyPayment}
 
-	tokens := splitLine(line, ',')
+	tokens := splitLine(line, ';')
 	length := len(tokens)
 	if length < 5 {
 		return nil
@@ -45,7 +45,7 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	vorgang := tokens[2]
 	buchungsText := tokens[3]
 	umsatz := tokens[4]
-	if length == 6 {
+	if length == 7 {
 		buchungsText = tokens[4]
 		umsatz = tokens[5]
 	}
@@ -86,39 +86,42 @@ func parseValue(str string) (int, error) {
 }
 
 func handleLastschrift(t *Transaction) bool {
-	if strings.Contains(t.Payee, "Lastschrift") || strings.Contains(t.Payee, "Überweisung") {
+	if strings.Contains(t.Category, "Lastschrift") || strings.Contains(t.Category, "Überweisung") {
 		s := strings.Split(t.Comment, " Buchungstext: ")
 		t.Comment = s[1]
 		t.Payee = strings.Replace(s[0], "Auftraggeber: ", "", 1)
 		t.Payee = strings.Replace(t.Payee, "Empfänger: ", "", 1)
-
+		t.Category = ""
 		return true
 	}
 	return false
 }
 
 func handleWertpapiere(t *Transaction) bool {
-	if strings.Contains(t.Payee, "Wertpapiere") {
+	if strings.Contains(t.Category, "Wertpapiere") {
 		t.Comment = strings.Replace(t.Comment, "Buchungstext: ", "", 1)
 		t.Payee = "Transfer: .comdirect Depot"
+		t.Category = ""
 		return true
 	}
 	return false
 }
 
 func handleVisa(t *Transaction) bool {
-	if strings.Contains(t.Payee, "Visa-Umsatz") {
+	if strings.Contains(t.Category, "Visa-Umsatz") {
 		t.Payee = t.Comment
 		t.Comment = ""
+		t.Category = ""
 		return true
 	}
 	return false
 }
 
 func handleVisaMonthlyPayment(t *Transaction) bool {
-	if strings.Contains(t.Payee, "Visa-Kartenabrechnung") {
+	if strings.Contains(t.Category, "Visa-Kartenabrechnung") {
 		t.Payee = "Transfer: .comdirect"
 		t.Comment = ""
+		t.Category = ""
 		return true
 	}
 	return false

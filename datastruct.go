@@ -20,4 +20,5 @@ type InputProcessor interface {
 type OutputProcessor interface {
 	WriteHeader(w *bufio.Writer)
 	Process(w *bufio.Writer, t *Transaction)
+	BatchProcess(w *bufio.Writer, t []*Transaction)
 }
