@@ -17,11 +17,6 @@ type payeeSubstitution interface {
 	substitute(t *Transaction)
 }
 
-/**
- * Input: "Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";
- * Output: Date;Payee;Category;Memo;Outflow;Inflow
- */
-
 func main() {
 
 	inputFileName := flag.String("in", "", "input file (mandatory)")
@@ -63,11 +58,14 @@ func rewriteCSV(inputFileName string, outputFileName string, fromDate time.Time,
 	writer := bufio.NewWriter(outputFile)
 	defer writer.Flush()
 
-	var inProc InputProcessor = NewComdirectInput(fromDate, substitution)
+	var inProc InputProcessor = NewComdirectInput(substitution)
 	var outProc OutputProcessor = &YNABOutput{}
 	outProc.WriteHeader(writer)
 	for scanner.Scan() {
 		if t := inProc.processLine(scanner.Text()); t != nil {
+			if t.Date.Before(fromDate) {
+				continue
+			}
 			outProc.Process(writer, t)
 		}
 	}

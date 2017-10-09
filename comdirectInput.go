@@ -11,16 +11,14 @@ const comdirectDateFormat string = "02.01.2006"
 
 type ComdirectInput struct {
 	headerFound bool
-	fromDate    time.Time
 	sub         payeeSubstitution
 }
 
 type handler func(*Transaction) bool
 
-func NewComdirectInput(fromDate time.Time, sub payeeSubstitution) *ComdirectInput {
+func NewComdirectInput(sub payeeSubstitution) *ComdirectInput {
 	com := ComdirectInput{}
 	com.headerFound = false
-	com.fromDate = fromDate
 	com.sub = sub
 	return &com
 }
@@ -59,10 +57,6 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	if err != nil {
 		fmt.Errorf("error in parsing value from line '%s'", line)
 		fmt.Println(err)
-		return nil
-	}
-
-	if t.Date.Before(c.fromDate) {
 		return nil
 	}
 
