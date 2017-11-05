@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const YNABDateFormat string = "01/02/2006"
+const YNABDateFormat string = "02.01.2006"
 
 type YNABOutput struct {
 }
@@ -23,7 +23,7 @@ func (*YNABOutput) Process(w *bufio.Writer, t *Transaction) {
 	if t.ValueCent < 0 {
 		outflow = formatValue(-t.ValueCent)
 	} else {
-		outflow = formatValue(t.ValueCent)
+		inflow = formatValue(t.ValueCent)
 	}
 	output := strings.Join([]string{date, t.Payee, t.Category, t.Comment, outflow, inflow}, ",")
 	fmt.Fprintln(w, output)
