@@ -25,6 +25,9 @@ func (*YNABOutput) Process(w *bufio.Writer, t *Transaction) {
 	} else {
 		inflow = formatValue(t.ValueCent)
 	}
+
+	removeInvalidChars(t)
+
 	output := strings.Join([]string{date, t.Payee, t.Category, t.Comment, outflow, inflow}, ",")
 	fmt.Fprintln(w, output)
 }
@@ -51,4 +54,10 @@ func formatValue(v int) string {
 		result = "-" + result
 	}
 	return result
+}
+
+func removeInvalidChars(t *Transaction) {
+	t.Category = strings.Replace(t.Category, ",", ";", -1)
+	t.Comment = strings.Replace(t.Comment, ",", ";", -1)
+	t.Payee = strings.Replace(t.Payee, ",", ";", -1)
 }
