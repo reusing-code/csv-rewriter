@@ -22,6 +22,7 @@ var replacements = []struct {
 	{"EDEKA", "Edeka"},
 	{"ROSSMANN", "Rossmann"},
 	{"ALDI", "Aldi"},
+	{"Lidl", "Lidl"},
 	{"ERGO", "Ergo Direkt"},
 	{"COSMOS", "Transfer: Cosmos Leben"},
 	{"1u1", "1und1"},
