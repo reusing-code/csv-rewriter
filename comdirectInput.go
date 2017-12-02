@@ -24,7 +24,6 @@ func NewComdirectInput(sub payeeSubstitution) *ComdirectInput {
 }
 
 func (c *ComdirectInput) processLine(line string) *Transaction {
-	line = preFilter(line)
 	if !c.headerFound {
 		if strings.EqualFold(line, `"Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";`) ||
 			strings.EqualFold(line, `"Buchungstag";"Umsatztag";"Vorgang";"Referenz";"Buchungstext";"Umsatz in EUR";`) {
@@ -74,8 +73,10 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	return &t
 }
 
-func preFilter(line string) string {
-	return strings.Replace(line, `"neu":`, "", 1)
+func (*ComdirectInput) preFilter(input string) string {
+	str := strings.Replace(input, "\r\n", "\n", -1)
+	str = strings.Replace(str, "\r", "\n", -1)
+	return strings.Replace(str, "\n\"neu\"", "", -1)
 }
 
 func parseValue(str string) (int, error) {

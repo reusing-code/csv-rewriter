@@ -7,6 +7,10 @@ import (
 	"flag"
 	"time"
 
+	"io/ioutil"
+
+	"strings"
+
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
 )
@@ -42,24 +46,28 @@ func main() {
 }
 
 func rewriteCSV(inputFileName string, outputFileName string, fromDate time.Time, substitution payeeSubstitution) {
+	var inProc InputProcessor = NewComdirectInput(substitution)
+	var outProc OutputProcessor = &YNABOutput{}
 
-	inputFile, err := os.Open(inputFileName)
+	inputBytes, err := ioutil.ReadFile(inputFileName)
 	if err != nil {
 		panic(err)
 	}
-	defer inputFile.Close()
+	inputStr := string(inputBytes)
+	inputStr = inProc.preFilter(inputStr)
+
+	inputReader := strings.NewReader(inputStr)
+
 	outputFile, err := os.Create(outputFileName)
 	if err != nil {
 		panic(err)
 	}
-	defer inputFile.Close()
-	dec := transform.NewReader(inputFile, charmap.ISO8859_15.NewDecoder())
+	defer outputFile.Close()
+	dec := transform.NewReader(inputReader, charmap.ISO8859_15.NewDecoder())
 	scanner := bufio.NewScanner(dec)
 	writer := bufio.NewWriter(outputFile)
 	defer writer.Flush()
 
-	var inProc InputProcessor = NewComdirectInput(substitution)
-	var outProc OutputProcessor = &YNABOutput{}
 	outProc.WriteHeader(writer)
 	for scanner.Scan() {
 		if t := inProc.processLine(scanner.Text()); t != nil {
