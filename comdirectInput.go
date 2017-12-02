@@ -76,7 +76,7 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 func (*ComdirectInput) preFilter(input string) string {
 	str := strings.Replace(input, "\r\n", "\n", -1)
 	str = strings.Replace(str, "\r", "\n", -1)
-	return strings.Replace(str, "\n\"neu\"", "", -1)
+	return strings.Replace(str, "\n\"neu\";", "", -1)
 }
 
 func parseValue(str string) (int, error) {
