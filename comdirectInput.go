@@ -88,7 +88,7 @@ func parseValue(str string) (int, error) {
 
 func handleLastschrift(t *Transaction) bool {
 	if strings.Contains(t.Category, "Lastschrift") || strings.Contains(t.Category, "Überweisung") {
-		s := strings.Split(t.Comment, " Buchungstext: ")
+		s := strings.Split(t.Comment, "Buchungstext: ")
 		t.Comment = s[1]
 		t.Payee = strings.Replace(s[0], "Auftraggeber: ", "", 1)
 		t.Payee = strings.Replace(t.Payee, "Empfänger: ", "", 1)
