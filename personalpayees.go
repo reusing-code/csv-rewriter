@@ -43,6 +43,7 @@ var replacements = []struct {
 	{"BARCLAYCARD", "Barcleycard"},
 	{"AMAZON.DE", "Amazon"},
 	{"Amazon DE Marketplace", "Amazon Marketplace"},
+	{"Walther", "Walther"},
 }
 
 func CaseInsensitiveContains(s, substr string) bool {
