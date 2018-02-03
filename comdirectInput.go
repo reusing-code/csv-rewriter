@@ -60,11 +60,19 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 		return nil
 	}
 
+	processed := false
 	for _, h := range handlers {
 		if h(&t) {
+			processed = true
 			break
 		}
 	}
+
+	if !processed {
+		fmt.Errorf("No handler applicable for line '%s'", line)
+		return nil
+	}
+
 	t.Category = ""
 
 	c.sub.substitute(&t)
@@ -89,6 +97,9 @@ func parseValue(str string) (int, error) {
 func handleLastschrift(t *Transaction) bool {
 	if strings.Contains(t.Category, "Lastschrift") || strings.Contains(t.Category, "Überweisung") {
 		s := strings.Split(t.Comment, "Buchungstext: ")
+		if len(s) < 2 {
+			return false
+		}
 		t.Comment = s[1]
 		t.Payee = strings.Replace(s[0], "Auftraggeber: ", "", 1)
 		t.Payee = strings.Replace(t.Payee, "Empfänger: ", "", 1)
