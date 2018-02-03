@@ -42,7 +42,9 @@ var replacements = []struct {
 	{"Visa-Monatsabrechnung", "Transfer: Visa"},
 	{"BARCLAYCARD", "Barcleycard"},
 	{"AMAZON.DE", "Amazon"},
+	{"AMAZON EU S.A R.L.", "Amazon"},
 	{"Amazon DE Marketplace", "Amazon Marketplace"},
+	{"AMAZON PAYMENTS EUROPE S.C.A.", "Amazon Marketplace"},
 	{"Walther", "Walther"},
 }
 
