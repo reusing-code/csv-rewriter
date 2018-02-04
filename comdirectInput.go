@@ -23,13 +23,18 @@ func NewComdirectInput(sub payeeSubstitution) *ComdirectInput {
 	return &com
 }
 
-func (c *ComdirectInput) processLine(line string) *Transaction {
+func (c *ComdirectInput) processLine(line string) (*Transaction, error) {
 	if !c.headerFound {
 		if strings.EqualFold(line, `"Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";`) ||
 			strings.EqualFold(line, `"Buchungstag";"Umsatztag";"Vorgang";"Referenz";"Buchungstext";"Umsatz in EUR";`) {
 			c.headerFound = true
 		}
-		return nil
+		if len(line) > 0 {
+			return nil, fmt.Errorf("Ignored content before header:\n%s", line)
+		} else {
+			return nil, fmt.Errorf("")
+		}
+
 	}
 
 	handlers := []handler{handleLastschrift, handleWertpapiere, handleVisa, handleVisaMonthlyPayment,
@@ -38,7 +43,11 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	tokens := splitLine(line, ';')
 	length := len(tokens)
 	if length < 5 {
-		return nil
+		if len(line) > 0 {
+			return nil, fmt.Errorf("Ignored content:\n%s", line)
+		} else {
+			return nil, fmt.Errorf("")
+		}
 	}
 	buchungsTag, _ := time.Parse(comdirectDateFormat, tokens[0])
 	vorgang := tokens[2]
@@ -56,9 +65,8 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	t.Category = vorgang
 
 	if err != nil {
-		fmt.Printf("error in parsing value from line '%s'\n", line)
 		fmt.Println(err)
-		return nil
+		return nil, fmt.Errorf("error in parsing value from line '%s':\n%s", line, err.Error())
 	}
 
 	processed := false
@@ -70,8 +78,7 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	}
 
 	if !processed {
-		fmt.Printf("No handler applicable for line '%s'\n", line)
-		return nil
+		return nil, fmt.Errorf("No handler applicable for line '%s'\n", line)
 	}
 
 	t.Category = ""
@@ -79,7 +86,7 @@ func (c *ComdirectInput) processLine(line string) *Transaction {
 	c.sub.substitute(&t)
 	filterRef(&t)
 
-	return &t
+	return &t, nil
 }
 
 func (*ComdirectInput) preFilter(input string) string {

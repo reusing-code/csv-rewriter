@@ -11,6 +11,8 @@ import (
 
 	"strings"
 
+	"fmt"
+
 	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/transform"
 )
@@ -68,9 +70,22 @@ func rewriteCSV(inputFileName string, outputFileName string, fromDate time.Time,
 	writer := bufio.NewWriter(outputFile)
 	defer writer.Flush()
 
+	logFile, err := os.Create("error.log")
+	if err != nil {
+		panic(err)
+	}
+	defer logFile.Close()
+	logWriter := bufio.NewWriter(logFile)
+	defer logWriter.Flush()
+
 	outProc.WriteHeader(writer)
 	for scanner.Scan() {
-		if t := inProc.processLine(scanner.Text()); t != nil {
+		t, err := inProc.processLine(scanner.Text())
+		if err != nil {
+			fmt.Fprintln(logWriter, err.Error())
+			continue
+		}
+		if t != nil {
 			if t.Date.Before(fromDate) {
 				continue
 			}

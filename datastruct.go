@@ -14,7 +14,7 @@ type Transaction struct {
 }
 
 type InputProcessor interface {
-	processLine(line string) *Transaction
+	processLine(line string) (*Transaction, error)
 	preFilter(input string) string
 }
 
