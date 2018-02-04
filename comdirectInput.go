@@ -28,11 +28,12 @@ func (c *ComdirectInput) processLine(line string) (*Transaction, error) {
 		if strings.EqualFold(line, `"Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";`) ||
 			strings.EqualFold(line, `"Buchungstag";"Umsatztag";"Vorgang";"Referenz";"Buchungstext";"Umsatz in EUR";`) {
 			c.headerFound = true
+			return nil, fmt.Errorf("")
 		}
 		if len(line) > 0 {
 			return nil, fmt.Errorf("Ignored content before header:\n%s", line)
 		} else {
-			return nil, fmt.Errorf("")
+
 		}
 
 	}
