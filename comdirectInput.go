@@ -1,4 +1,4 @@
-package main
+package csvrewrite
 
 import (
 	"fmt"
@@ -11,19 +11,19 @@ const comdirectDateFormat string = "02.01.2006"
 
 type ComdirectInput struct {
 	headerFound bool
-	sub         payeeSubstitution
+	sub         PayeeSubstitution
 }
 
 type handler func(*Transaction) bool
 
-func NewComdirectInput(sub payeeSubstitution) *ComdirectInput {
+func NewComdirectInput(sub PayeeSubstitution) *ComdirectInput {
 	com := ComdirectInput{}
 	com.headerFound = false
 	com.sub = sub
 	return &com
 }
 
-func (c *ComdirectInput) processLine(line string) (*Transaction, error) {
+func (c *ComdirectInput) ProcessLine(line string) (*Transaction, error) {
 	if !c.headerFound {
 		if strings.EqualFold(line, `"Buchungstag";"Wertstellung (Valuta)";"Vorgang";"Buchungstext";"Umsatz in EUR";`) ||
 			strings.EqualFold(line, `"Buchungstag";"Umsatztag";"Vorgang";"Referenz";"Buchungstext";"Umsatz in EUR";`) {
@@ -90,7 +90,7 @@ func (c *ComdirectInput) processLine(line string) (*Transaction, error) {
 	return &t, nil
 }
 
-func (*ComdirectInput) preFilter(input string) string {
+func (*ComdirectInput) PreFilter(input string) string {
 	str := strings.Replace(input, "\r\n", "\n", -1)
 	str = strings.Replace(str, "\r", "\n", -1)
 	return strings.Replace(str, "\n\"neu\";", "", -1)

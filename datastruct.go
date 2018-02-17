@@ -1,9 +1,13 @@
-package main
+package csvrewrite
 
 import (
 	"bufio"
 	"time"
 )
+
+type PayeeSubstitution interface {
+	substitute(t *Transaction)
+}
 
 type Transaction struct {
 	Date      time.Time
@@ -14,8 +18,8 @@ type Transaction struct {
 }
 
 type InputProcessor interface {
-	processLine(line string) (*Transaction, error)
-	preFilter(input string) string
+	ProcessLine(line string) (*Transaction, error)
+	PreFilter(input string) string
 }
 
 type OutputProcessor interface {
