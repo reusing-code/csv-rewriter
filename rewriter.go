@@ -4,10 +4,10 @@ import (
 	"time"
 	"io"
 	"bufio"
-	"strings"
 	"golang.org/x/text/transform"
 	"golang.org/x/text/encoding/charmap"
 	"fmt"
+	"bytes"
 )
 
 type rewriter struct {
@@ -15,7 +15,7 @@ type rewriter struct {
 	fromDate time.Time
 	inputProc InputProcessor
 	outputProc OutputProcessor
-	errorWriter *io.Writer
+	errorWriter io.Writer
 }
 
 func NewRewriter() *rewriter {
@@ -34,23 +34,17 @@ func (r *rewriter) SetOutProcessor(outputProc OutputProcessor) {
 	r.outputProc = outputProc
 }
 
-func (r *rewriter) SetErrorWriter(errorWriter *io.Writer) {
+func (r *rewriter) SetErrorWriter(errorWriter io.Writer) {
 	r.errorWriter = errorWriter
 }
 
 func (r *rewriter) ImportTransactions(input io.Reader) {
-	var buf string
-	var err error = nil
-	for ; err == nil; {
-		var p []byte
-		_, err = input.Read(p)
-		buf += string(p)
-	}
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(input)
 
-	buf = r.inputProc.PreFilter(buf)
+	buf = bytes.NewBufferString(r.inputProc.PreFilter(buf.String()))
 
-	inputReader := strings.NewReader(buf)
-	dec := transform.NewReader(inputReader, charmap.ISO8859_15.NewDecoder())
+	dec := transform.NewReader(buf, charmap.ISO8859_15.NewDecoder())
 	scanner := bufio.NewScanner(dec)
 	for scanner.Scan() {
 		t, err := r.inputProc.ProcessLine(scanner.Text())
@@ -80,7 +74,7 @@ func (r *rewriter) ExportTransactions(output io.Writer) {
 
 func (r *rewriter) WriteError(s string) {
 	if r.errorWriter != nil {
-		fmt.Fprintln(*r.errorWriter, s)
+		fmt.Fprintln(r.errorWriter, s)
 	}
 }
 
