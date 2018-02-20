@@ -1,11 +1,11 @@
-package main
+package csvrewrite
 
 import "strings"
 
-type personalPayees struct {
+type PersonalPayees struct {
 }
 
-func (personalPayees) substitute(t *Transaction) {
+func (PersonalPayees) substitute(t *Transaction) {
 	for _, replacement := range replacements {
 		if CaseInsensitiveContains(t.Payee, replacement.in) {
 			t.Payee = replacement.out
